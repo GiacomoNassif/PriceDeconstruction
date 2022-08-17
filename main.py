@@ -1,6 +1,7 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.tree import plot_tree
 import numpy as np
 import sympy as sp
 from sympy.abc import x
@@ -63,10 +64,15 @@ with deconstruction_tab:
     if show_residuals:
         ax.plot(X_range, y - preds, label='Residuals')
     if show_residuals_squared:
-        ax.plot(X_range, (y-preds)**2, label='Residuals^2')
+        ax.plot(X_range, (y - preds) ** 2, label='Residuals^2')
 
     ax.legend()
 
     st.pyplot(fig)
 
 
+    fig, ax = plt.subplots()
+
+    plot_this_tree = st.selectbox('Pick tree to plot', [i for i in range(number_of_trees)])
+    plot_tree(model.estimators_[plot_this_tree-1][0], ax=ax)
+    st.pyplot(fig)
