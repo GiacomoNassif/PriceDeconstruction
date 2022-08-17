@@ -58,9 +58,12 @@ with deconstruction_tab:
     ax.plot(X_range, y, label='Actual Data')
 
     show_residuals = st.checkbox('Show residuals?', value=True)
+    show_residuals_squared = st.checkbox('Show residuals squared', value=False)
 
     if show_residuals:
         ax.plot(X_range, y - preds, label='Residuals')
+    if show_residuals_squared:
+        ax.plot(X_range, (y-preds)**2, label='Residuals^2')
 
     ax.legend()
 
