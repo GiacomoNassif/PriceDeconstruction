@@ -1,10 +1,17 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.tree import plot_tree
 import numpy as np
 import sympy as sp
 from sympy.abc import x
+from StreamlitModels import ALL_MODELS
+
+FIGURE_SIZE = 200
+
+st.set_page_config(
+    page_title='Price Deconstruction',
+    layout='wide',
+    page_icon=':rocket:'
+)
 
 st.title('Price Deconstruction')
 
@@ -32,47 +39,57 @@ with underlying_function_tab:
     )
 
     X_range = np.linspace(x_low, x_high, 10_000)
+    X = X_range.reshape(-1, 1)
     y = compiled_func(X_range)
 
     fig, ax = plt.subplots()
-
     ax.plot(X_range, y)
-    st.pyplot(fig)
+    ax.set_ylabel('Hidden function')
+    ax.set_xlabel('X')
+
+    _, _, col, _, _ = st.columns([1,1,2,1,1])
+    with col:
+        st.pyplot(fig)
 
 with deconstruction_tab:
     model_selected = st.selectbox(
         'Select the model we will use',
-        ['GBM']
+        ALL_MODELS.keys()
     )
 
-    if model_selected == 'GBM':
-        number_of_trees = st.slider('Number of trees', min_value=1, max_value=10, step=1)
-        depth_of_trees = st.slider('Depth of trees', min_value=1, max_value=10, step=1)
-        model = GradientBoostingRegressor(n_estimators=number_of_trees, max_depth=depth_of_trees, learning_rate=1)
-        model.fit(X_range.reshape(-1, 1), y)
+    hyper_parameter_column, model_plot_cols = st.columns(2)
 
-    preds = model.predict(X_range.reshape(-1, 1))
+    streamlit_model = ALL_MODELS[model_selected]
+    with hyper_parameter_column:
+        st.subheader('Hyper Parameter Selections')
+        streamlit_model.render_hyper_parameters()
 
-    fig, ax = plt.subplots()
+    streamlit_model.fit(X, y)
 
-    ax.plot(X_range, preds, label=f'Prediction from {model_selected}')
-    ax.plot(X_range, y, label='Actual Data')
+    predictions = streamlit_model.predict(X)
 
-    show_residuals = st.checkbox('Show residuals?', value=True)
-    show_residuals_squared = st.checkbox('Show residuals squared', value=False)
+    with model_plot_cols:
+        st.subheader('Plotting')
+        fig, ax = plt.subplots()
 
-    if show_residuals:
-        ax.plot(X_range, y - preds, label='Residuals')
-    if show_residuals_squared:
-        ax.plot(X_range, (y - preds) ** 2, label='Residuals^2')
+        ax.plot(X_range, predictions, label=f'Prediction from {model_selected}')
+        ax.plot(X_range, y, label='Actual Data')
 
-    ax.legend()
+        show_residuals = st.checkbox('Show residuals?', value=True)
+        show_residuals_squared = st.checkbox('Show residuals squared', value=False)
 
-    st.pyplot(fig)
+        if show_residuals:
+            ax.plot(X_range, y - predictions, label='Residuals')
+        if show_residuals_squared:
+            ax2 = ax.twinx()
+            ax2.set_ylabel("Residual Squared")
+            ax2.plot(X_range, (y - predictions) ** 2, label='Residuals^2', color='Red')
 
+        ax.legend()
 
-    fig, ax = plt.subplots()
+        st.pyplot(fig)
 
-    plot_this_tree = st.selectbox('Pick tree to plot', [i for i in range(number_of_trees)])
-    plot_tree(model.estimators_[plot_this_tree-1][0], ax=ax)
-    st.pyplot(fig)
+        fig, ax = plt.subplots()
+
+        if model_selected == 'GBM':
+            streamlit_model.plot_trees()
