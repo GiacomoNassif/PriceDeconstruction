@@ -75,7 +75,7 @@ with deconstruction_tab:
         ax.plot(X_range, predictions, label=f'Prediction from {model_selected}')
         ax.plot(X_range, y, label='Actual Data')
 
-        show_residuals = st.checkbox('Show residuals?', value=True)
+        show_residuals = st.checkbox('Show residuals?', value=False)
         show_residuals_squared = st.checkbox('Show residuals squared', value=False)
 
         if show_residuals:
