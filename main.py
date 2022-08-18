@@ -72,18 +72,22 @@ with deconstruction_tab:
         st.subheader('Plotting')
         fig, ax = plt.subplots()
 
-        ax.plot(X_range, predictions, label=f'Prediction from {model_selected}')
-        ax.plot(X_range, y, label='Actual Data')
+        plot_preds = ax.plot(X_range, predictions, label=f'Prediction from {model_selected}')
+        plot_actuals = ax.plot(X_range, y, label='Actual Data')
 
         show_residuals = st.checkbox('Show residuals?', value=False)
         show_residuals_squared = st.checkbox('Show residuals squared', value=False)
 
         if show_residuals:
-            ax.plot(X_range, y - predictions, label='Residuals')
+            ax_res = ax.twinx()
+            ax_res.set_ylabel("Residuals")
+            ax_res.plot(X_range, y - predictions, label='Residuals', color='Green')
         if show_residuals_squared:
             ax2 = ax.twinx()
             ax2.set_ylabel("Residual Squared")
             ax2.plot(X_range, (y - predictions) ** 2, label='Residuals^2', color='Red')
+            if show_residuals:
+                ax2.spines['right'].set_position(('outward', 60))
 
         ax.legend()
 
